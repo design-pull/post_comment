@@ -1,34 +1,29 @@
-# 1. ベースイメージとしてJava実行環境とTomcat/Jettyの実行環境を持つMavenイメージを使用
-FROM maven:3.9.4-eclipse-temurin-21-full AS build
+# 1. ビルドステージ: MavenとJDK 21を使用
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 
-# 2. プロジェクトファイルをコンテナにコピー
+# 2. アプリケーションコードをコンテナ内の作業ディレクトリにコピー
 COPY . /app
 WORKDIR /app
 
-# 3. Mavenを使ってプロジェクトをビルドし、WARファイルを生成 (RenderのBuild Commandに相当)
+# 3. Mavenを使ってプロジェクトをビルドし、WARファイルを生成
 RUN mvn clean install -DskipTests
 
-# 4. 実行用の軽量なベースイメージに切り替える
+# 4. 実行ステージ: 軽量なJRE 21イメージに切り替え
+# TomcatやJettyなどのWebコンテナの実行環境を含める必要があります。
+# ここでは、WARを実行するためにJetty Runnerを使用する構成にします。
 FROM eclipse-temurin:21-jre-alpine
 
-# 5. WARファイルを実行するために必要なWebサーバー（JettyやTomcat）を実行可能な状態にする
+# Jetty Runner JARをダウンロード
+# Renderが環境変数で指定するPORTを使用できるように-Djetty.port=$PORTを設定
+RUN wget -q https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/9.4.51.v20230217/jetty-runner-9.4.51.v20230217.jar -O /jetty-runner.jar
 
-# Renderは自動でWARファイルを検出して実行しようとするため、
-# WARファイルをWEBAPPSフォルダに配置する設定が最もシンプルです。
-# ただし、Java Web AppのデプロイはRender上で複雑なため、Jettyで直接実行する構成を推奨します。
+# ビルドステージで作成されたWARファイルをコピー
+COPY --from=build /app/target/post_comment.war /post_comment.war
 
-# Jetty Runnerを使ってWARを実行する場合
-# Jetty Runner JARをダウンロードし、WARを実行する
-# RUN wget -q https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-runner/9.4.44.v20210927/jetty-runner-9.4.44.v20210927.jar
-# ENV PORT 8080
-# EXPOSE 8080
-# CMD java -jar jetty-runner-9.4.44.v20210927.jar /app/target/*.war
-
-# 暫定的に、WARを配置するシンプルな構成 (Renderが自動で実行することを期待)
-COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
-
-# デフォルトのポートを使用
+# Renderが設定するポートを待ち受ける
 ENV PORT 8080
+EXPOSE 8080
 
-# 必要なコマンドの起動（Renderの環境によって異なるため、この部分はトライ＆エラーが必要です）
-# CMD ["java", "-jar", "tomcat-runner.jar"]
+# 5. アプリケーションの起動コマンド
+# Jetty Runnerを使って、コピーしたWARファイルを起動する
+CMD java -Djetty.port=$PORT -jar /jetty-runner.jar /post_comment.war
