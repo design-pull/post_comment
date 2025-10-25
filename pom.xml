@@ -12,11 +12,12 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <!-- Jakarta EE 9/10のServlet APIバージョン -->
         <jakarta.servlet.api.version>6.0.0</jakarta.servlet.api.version>
     </properties>
 
     <dependencies>
-        <!-- Jakarta Servlet API for Tomcat 10+ (必須) -->
+        <!-- Jakarta Servlet API (必須) -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -24,7 +25,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- ⭐️ 追加 1: JSPの実行に必要なAPI (Tomcat/Jettyが提供) -->
+        <!-- JSPの実行に必要なAPI -->
         <dependency>
             <groupId>jakarta.servlet.jsp</groupId>
             <artifactId>jakarta.servlet.jsp-api</artifactId>
@@ -32,14 +33,14 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- ⭐️ 追加 2: JSTL (JSP Standard Tag Library) の実装 -->
+        <!-- JSTL (JSP Standard Tag Library) の実装 -->
         <dependency>
             <groupId>org.glassfish.web</groupId>
             <artifactId>jakarta.servlet.jsp.jstl</artifactId>
             <version>3.0.1</version>
         </dependency>
 
-        <!-- ⭐️ 追加 3: Expression Language (EL) の実装 -->
+        <!-- Expression Language (EL) の実装 -->
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>jakarta.el</artifactId>
@@ -50,11 +51,13 @@
     <build>
         <finalName>post_comment</finalName>
         <plugins>
+            <!-- Maven WAR Plugin (WARファイル作成用) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
             </plugin>
+            <!-- その他のプラグインはRenderの実行環境では不要なため削除 -->
         </plugins>
     </build>
 </project>
