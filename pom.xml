@@ -16,13 +16,36 @@
     </properties>
 
     <dependencies>
+        <!-- Jakarta Servlet API for Tomcat 10+ (必須) -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>${jakarta.servlet.api.version}</version>
             <scope>provided</scope>
         </dependency>
-        </dependencies>
+
+        <!-- ⭐️ 追加 1: JSPの実行に必要なAPI (Tomcat/Jettyが提供) -->
+        <dependency>
+            <groupId>jakarta.servlet.jsp</groupId>
+            <artifactId>jakarta.servlet.jsp-api</artifactId>
+            <version>3.1.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ⭐️ 追加 2: JSTL (JSP Standard Tag Library) の実装 -->
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!-- ⭐️ 追加 3: Expression Language (EL) の実装 -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <finalName>post_comment</finalName>
