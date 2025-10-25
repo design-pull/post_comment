@@ -1,0 +1,112 @@
+@charset "UTF-8";
+
+/* ベースリセットとボックスモデル安定化 */
+html, body, *, *::before, *::after { box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f6;
+  color: #333;
+  margin: 24px;
+  line-height: 1.6;
+}
+
+/* 見出し */
+h1 {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+}
+
+/* フォーム */
+form {
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  margin-bottom: 18px;
+}
+
+/* 入力 */
+input[type="text"], textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  margin: 8px 0 12px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ボタン */
+input[type="submit"], button {
+  background-color: #28a745;
+  color: #fff;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+input[type="submit"]:hover { background-color: #218838; }
+
+/* ユーザー情報 / エラー */
+.user-info {
+  font-size: 1.05em;
+  padding: 8px 0;
+  border-bottom: 1px dashed #ccc;
+  margin-bottom: 14px;
+}
+.error-msg {
+  color: #dc3545;
+  font-weight: 700;
+  padding: 10px;
+  border: 1px solid #dc3545;
+  background-color: #f8d7da;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+/* コメント一覧 (.mutter-list) — 長い単語対策を完全対応 */
+.mutter-list {
+  width: 100%;
+  min-width: 0;                /* flex/grid 内のはみ出し対策 */
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-x: hidden;
+  margin-top: 8px;
+}
+
+.mutter-list p {
+  display: block;
+  width: 100%;
+  background-color: #fff;
+  padding: 10px 14px;
+  border-left: 5px solid #007bff;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  line-height: 1.5;
+}
+
+/* 偶数行の背景 */
+.mutter-list p:nth-child(even) { background-color: #f9f9f9; }
+
+/* レスポンシブ */
+@media (max-width: 600px) {
+  body { margin: 12px; }
+  h1 { font-size: 1.2rem; }
+  .mutter-list p { max-width: 100%; padding: 10px; }
+}
