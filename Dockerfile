@@ -1,25 +1,26 @@
-# 1. ビルドステージ: MavenとJava 21を使ってアプリケーションの実行可能JARを作成する
+# 1. ビルドステージ: MavenとJava 21を使って実行可能JARを作成する
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 
-# プロジェクトファイルをコンテナにコピーし、ビルド（実行可能JARがtargetディレクトリに生成される）
+# プロジェクトファイルをコンテナにコピーし、ビルドを実行
+# pom.xmlとTomcatRunner.javaを使ってpost_comment-1.0-SNAPSHOT.jarが作成されます。
 COPY . /app
 WORKDIR /app
-# ビルド時にTomcat Embeddedの設定が適用され、すべての依存関係が組み込まれる
 RUN mvn clean install -DskipTests
 
 # ----------------------------------------------------------------------
 
-# 2. 実行ステージ: 軽量なJRE 21イメージに切り替える
-FROM eclipse-temurin:21-jre-alpine
-
-# ビルドステージから実行可能JARファイルだけをコピー
-# ファイル名はpom.xmlの<artifactId>-<version>.jarに従う
-COPY --from=build /app/target/post_comment-1.0-SNAPSHOT.jar /app.jar
+# 2. 実行ステージ: 安定したJRE 21イメージに切り替える
+# JNIエラーを回避するため、alpineベースではないフルバージョンのJREを使用
+FROM eclipse-temurin:21-jre
 
 # Renderが指定する環境変数PORT（通常8080）をDockerポートに公開
 ENV PORT 8080
 EXPOSE 8080
 
-# 3. アプリケーションの起動コマンド: 実行可能JARを直接起動
-# TomcatRunner.java内でPORT変数を読み込み、Tomcatを起動します。
+# ビルドステージから作成した実行可能JARファイルをコピー
+COPY --from=build /app/target/post_comment-1.0-SNAPSHOT.jar /app.jar
+COPY --from=build /app/src/main/webapp /webapp  # 静的ファイル (JSP/HTML) をコピー
+
+# 3. アプリケーションの起動コマンド: 実行可能JARを起動
+# $PORT変数を使ってTomcatRunnerを起動します
 CMD ["java", "-jar", "/app.jar"]
