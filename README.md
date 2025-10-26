@@ -39,8 +39,3 @@ https://design-pull.com/wp-content/uploads/2025/10/bandicam-2025-10-26-12-44-36-
 - **配置場所**: 静的ファイルは src/main/webapp 以下にあります。  
 - **デプロイ**: Docker + Maven、組み込み Tomcat を使用し、環境変数 **PORT** を参照して起動します。
 
----
-
-画像の表示について
-- GitHub の README.md に上の Markdown を貼れば、画像は公開 URL が有効な限り表示されます。  
-- 一部のプラットフォームやセキュリティ設定では外部画像がブロックされるため、その場合は画像が表示されません。
