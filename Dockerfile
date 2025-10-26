@@ -8,9 +8,9 @@ COPY . .
 # Mavenビルド（テストスキップ）
 RUN mvn -B -DskipTests package
 
-# 静的webapp を確保（存在する場合）
+# 静的webapp を確保（存在する場合） — 中身だけをコピーして /webapp に直置きにする
 RUN mkdir -p /app/build_webapp \
- && if [ -d /app/src/main/webapp ]; then cp -r /app/src/main/webapp /app/build_webapp/; fi
+ && if [ -d /app/src/main/webapp ]; then cp -r /app/src/main/webapp/* /app/build_webapp/; fi
 
 # runtime stage: full JRE 21
 FROM eclipse-temurin:21-jre
