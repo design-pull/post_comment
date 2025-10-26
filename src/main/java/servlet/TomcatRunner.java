@@ -1,16 +1,12 @@
 package servlet;
 
 import java.io.File;
-import java.net.URL;
 
-import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.connector.Connector;
-import org.apache.catalina.loader.WebappLoader;
 
 /**
- * 組み込みTomcat起動クラス /webapp (または /webapp/webapp / src/main/webapp) をルートにし、 /app.jar を webapp
- * のクラスローダに追加して Servlet クラスを利用可能にする
+ * 組み込みTomcat起動クラス RUN環境では /webapp を優先。 /webapp/webapp がある場合にも対応。
  */
 public class TomcatRunner {
 
@@ -32,36 +28,34 @@ public class TomcatRunner {
         tomcat.getService().addConnector(connector);
         tomcat.setConnector(connector);
 
-        // webapp 配置候補（優先順）
+        // 優先パスの順序
         String webappDirLocation = null;
+
+        // 1) /webapp/index.jsp があるか
         File webappRoot = new File("/webapp");
-        if (new File("/webapp/index.jsp").exists()) {
+        File webappIndex = new File("/webapp/index.jsp");
+        if (webappIndex.exists() && webappIndex.isFile()) {
             webappDirLocation = webappRoot.getAbsolutePath();
-        } else if (new File("/webapp/webapp/index.jsp").exists()) {
-            webappDirLocation = new File("/webapp/webapp").getAbsolutePath();
-        } else if (new File("src/main/webapp").exists()) {
-            webappDirLocation = new File("src/main/webapp").getAbsolutePath();
         } else {
-            webappDirLocation = new File(".").getAbsolutePath();
+            // 2) /webapp/webapp/index.jsp があるか（Docker のコピーで一段深くなっている場合）
+            File nested = new File("/webapp/webapp");
+            File nestedIndex = new File("/webapp/webapp/index.jsp");
+            if (nestedIndex.exists() && nestedIndex.isFile()) {
+                webappDirLocation = nested.getAbsolutePath();
+            } else {
+                // 3) 開発環境の src/main/webapp を使用
+                String dev = "src/main/webapp/";
+                if (new File(dev).exists()) {
+                    webappDirLocation = new File(dev).getAbsolutePath();
+                } else {
+                    // 最終フォールバック: カレントディレクトリ
+                    webappDirLocation = new File(".").getAbsolutePath();
+                }
+            }
         }
 
         System.out.println("Using webapp directory: " + webappDirLocation);
-
-        // コンテキストを生成
-        Context ctx = tomcat.addWebapp("", webappDirLocation);
-
-        // /app.jar をコンテキストのクラスローダに追加して Servlet クラスを読み込めるようにする
-        File appJar = new File("/app.jar");
-        if (appJar.exists()) {
-            URL jarUrl = appJar.toURI().toURL();
-            WebappLoader loader = new WebappLoader(Thread.currentThread().getContextClassLoader());
-            // addRepository が文字列（URL）を受け取る実装なので toString() を使う
-            loader.addRepository(jarUrl.toString());
-            ctx.setLoader(loader);
-            System.out.println("Added /app.jar to webapp classloader: " + jarUrl);
-        } else {
-            System.out.println("/app.jar not found; relying on classes in webapp");
-        }
+        tomcat.addWebapp("", webappDirLocation);
 
         System.out.println("Starting Tomcat on port: " + port);
         tomcat.start();
