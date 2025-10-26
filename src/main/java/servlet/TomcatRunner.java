@@ -3,39 +3,48 @@ package servlet;
 import java.io.File;
 
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.connector.Connector;
 
 /**
- * 組み込みTomcatを起動するためのメインクラス
- * Renderの環境変数PORTを使用して、Webサービスとして公開します。
+ * 組み込みTomcatを起動するためのメインクラス Renderの環境変数PORTを使用して、Webサービスとして公開します。
  */
 public class TomcatRunner {
 
     public static void main(String[] args) throws Exception {
         // Renderの環境変数PORTを取得（設定されていない場合は8080を使用）
-        String port = System.getenv("PORT");
-        if (port == null || port.isEmpty()) {
-            port = "8080";
+        String portEnv = System.getenv("PORT");
+        int port;
+        try {
+            port = (portEnv != null && !portEnv.isBlank()) ? Integer.parseInt(portEnv) : 8080;
+        } catch (NumberFormatException e) {
+            port = 8080;
         }
 
+        // Tomcatインスタンス作成
         Tomcat tomcat = new Tomcat();
-        tomcat.setPort(Integer.valueOf(port));
-        
+
+        // コネクタを作成して0.0.0.0にバインド（Renderが外部からポートを検出できるようにする）
+        Connector connector = new Connector();
+        connector.setScheme("http");
+        connector.setPort(port);
+        connector.setProperty("address", "0.0.0.0");
+
+        // サービスにコネクタを追加してデフォルトコネクタに設定
+        tomcat.getService().addConnector(connector);
+        tomcat.setConnector(connector);
+
         // 開発環境とWebアプリのルート（JSPや静的ファイルがある場所）を指定
-        // このパスはMaven WARビルドの標準出力ディレクトリです
         String webappDirLocation = "src/main/webapp/";
         if (!new File(webappDirLocation).exists()) {
-             // ビルド後の実行可能JAR内では、WARファイルがルートコンテキストになる
-             webappDirLocation = new File(".").getAbsolutePath();
+            webappDirLocation = new File(".").getAbsolutePath();
         }
 
-        // TomcatにWebアプリケーション（プロジェクト全体）をルートコンテキスト("/")でデプロイ
-        // 第二引数の "/" が、アプリケーションをルートパスで起動することを意味します。
-        tomcat.addWebapp("", webappDirLocation); 
+        // Webアプリケーションをルートコンテキストでデプロイ
+        tomcat.addWebapp("", webappDirLocation);
 
         System.out.println("Starting Tomcat on port: " + port);
-        
+
         tomcat.start();
-        // サーバーが停止しないようにメインスレッドを待機させる
         tomcat.getServer().await();
     }
 }
