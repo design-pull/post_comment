@@ -16,7 +16,7 @@
 </form>
 
 <p style="color: #dc3545; font-weight: bold; margin-top: 20px;">
-  ※テスト環境用のパスワードは「1234」です。
+  ※テスト環境用のユーザー名：「user」 パスワードは「1234」です。
 </p>
 </body>
 </html>
