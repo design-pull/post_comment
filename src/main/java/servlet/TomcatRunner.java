@@ -1,16 +1,13 @@
 package servlet;
 
 import java.io.File;
-import java.net.URL;
 
-import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.connector.Connector;
-import org.apache.catalina.loader.WebappLoader;
 
 /**
- * 組み込みTomcat起動クラス /webapp (または /webapp/webapp / src/main/webapp) をルートにし、 /app.jar を webapp
- * のクラスローダに追加して Servlet クラスを利用可能にする
+ * 組み込みTomcat起動クラス /webapp (または /webapp/webapp / src/main/webapp) をルートにし、 0.0.0.0 にバインドして Render の
+ * PORT を利用する
  */
 public class TomcatRunner {
 
@@ -32,7 +29,6 @@ public class TomcatRunner {
         tomcat.getService().addConnector(connector);
         tomcat.setConnector(connector);
 
-        // webapp 配置候補（優先順）
         String webappDirLocation;
         if (new File("/webapp/index.jsp").exists()) {
             webappDirLocation = new File("/webapp").getAbsolutePath();
@@ -45,21 +41,7 @@ public class TomcatRunner {
         }
 
         System.out.println("Using webapp directory: " + webappDirLocation);
-
-        // コンテキストを生成
-        Context ctx = tomcat.addWebapp("", webappDirLocation);
-
-        // /app.jar をコンテキストのクラスローダに追加して Servlet クラスを読み込めるようにする
-        File appJar = new File("/app.jar");
-        if (appJar.exists()) {
-            URL jarUrl = appJar.toURI().toURL();
-            WebappLoader loader = new WebappLoader(Thread.currentThread().getContextClassLoader());
-            loader.addRepository(jarUrl.toString());
-            ctx.setLoader(loader);
-            System.out.println("Added /app.jar to webapp classloader: " + jarUrl);
-        } else {
-            System.out.println("/app.jar not found; relying on classes in webapp");
-        }
+        tomcat.addWebapp("", webappDirLocation);
 
         System.out.println("Starting Tomcat on port: " + port);
         tomcat.start();

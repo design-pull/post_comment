@@ -2,17 +2,16 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# リポジトリ全体をコピー（.dockerignore を尊重）
 COPY . .
 
-# Mavenビルド（テストスキップ）
 RUN mvn -B -DskipTests package
 
-# 静的webapp を確保（存在する場合） — 中身だけをコピーして /webapp に直置きにする
+# 静的 webapp を確保（存在する場合） — 中身だけをコピーして /app/build_webapp に直置きにする
 RUN mkdir -p /app/build_webapp \
- && if [ -d /app/src/main/webapp ]; then cp -r /app/src/main/webapp/* /app/build_webapp/; fi
+ && if [ -d /app/src/main/webapp ]; then cp -r /app/src/main/webapp/* /app/build_webapp/; fi \
+ && mkdir -p /app/build_webapp/WEB-INF/lib \
+ && cp /app/target/*-SNAPSHOT*.jar /app/build_webapp/WEB-INF/lib/post_comment.jar
 
-# runtime stage: full JRE 21
 FROM eclipse-temurin:21-jre
 ENV PORT 8080
 EXPOSE 8080
