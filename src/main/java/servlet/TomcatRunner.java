@@ -6,7 +6,7 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.connector.Connector;
 
 /**
- * 組み込みTomcat起動クラス RUN環境では /webapp を優先、開発時は src/main/webapp を使用する
+ * 組み込みTomcat起動クラス RUN環境では /webapp を優先。 /webapp/webapp がある場合にも対応。
  */
 public class TomcatRunner {
 
@@ -21,7 +21,6 @@ public class TomcatRunner {
 
         Tomcat tomcat = new Tomcat();
 
-        // 明示的に 0.0.0.0 にバインドするコネクタを作成
         Connector connector = new Connector();
         connector.setScheme("http");
         connector.setPort(port);
@@ -29,17 +28,29 @@ public class TomcatRunner {
         tomcat.getService().addConnector(connector);
         tomcat.setConnector(connector);
 
-        // コンテナ実行時の配置先を優先して使う
-        String webappDirLocation;
-        File webappOnContainer = new File("/webapp");
-        if (webappOnContainer.exists() && webappOnContainer.isDirectory()) {
-            webappDirLocation = webappOnContainer.getAbsolutePath();
+        // 優先パスの順序
+        String webappDirLocation = null;
+
+        // 1) /webapp/index.jsp があるか
+        File webappRoot = new File("/webapp");
+        File webappIndex = new File("/webapp/index.jsp");
+        if (webappIndex.exists() && webappIndex.isFile()) {
+            webappDirLocation = webappRoot.getAbsolutePath();
         } else {
-            // 開発環境用のパス
-            webappDirLocation = "src/main/webapp/";
-            if (!new File(webappDirLocation).exists()) {
-                // fallback: カレントディレクトリ
-                webappDirLocation = new File(".").getAbsolutePath();
+            // 2) /webapp/webapp/index.jsp があるか（Docker のコピーで一段深くなっている場合）
+            File nested = new File("/webapp/webapp");
+            File nestedIndex = new File("/webapp/webapp/index.jsp");
+            if (nestedIndex.exists() && nestedIndex.isFile()) {
+                webappDirLocation = nested.getAbsolutePath();
+            } else {
+                // 3) 開発環境の src/main/webapp を使用
+                String dev = "src/main/webapp/";
+                if (new File(dev).exists()) {
+                    webappDirLocation = new File(dev).getAbsolutePath();
+                } else {
+                    // 最終フォールバック: カレントディレクトリ
+                    webappDirLocation = new File(".").getAbsolutePath();
+                }
             }
         }
 
